@@ -1,5 +1,5 @@
 [package]
-name = "test-2-gtk"
+name = "gtk-periodic-table"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 gtk4= {version="0.4.6",package="gtk4"}
+csv = "1.1.6"

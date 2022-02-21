@@ -1,6 +1,9 @@
 use gtk4 as gtk;
 use gtk::prelude::*;
-use gtk::{Application, ApplicationWindow, Box, Button, Label,Orientation};
+use gtk::{Application, ApplicationWindow, Button};
+use csv;
+use std::fs::File;
+use std::process;
 
 fn main() {
     let application = Application::builder()
@@ -9,48 +12,100 @@ fn main() {
     application.connect_activate(build_ui);
     application.run();
 }
+
 fn build_ui(app: &Application) {
-    let mut horizontal_box = gtk::Box::new(Orientation::Horizontal,5);
 
-    let mut group_1 = gtk::Box::new(Orientation::Vertical,5);
-    horizontal_box.append(&group_1);
+    let periodic_table = get_elements();
 
-    let mut group_1_elements:Vec<Button> = vec![];
-    let group_1_symbols = vec!["H","Li","Na","K","Rb","Cs","Fr"];
-    let group_1_atomic_numbers = vec![1,3,11,19,37,55,87];
-    for i in 0..7{
-        group_1_elements.push(create_element(group_1_symbols[i],group_1_atomic_numbers[i]));
-        group_1.append(&group_1_elements[i]);
+    let grid = gtk::Grid::new();
+    let mut elements:Vec<Element> = vec![];
+
+    let mut skipped_elements = 0;
+
+    for i in 0..periodic_table.len(){
+        if periodic_table[i][8] != "".to_string(){ // skip f block
+            elements.push(Element::new(periodic_table[i][0].parse().unwrap(),periodic_table[i][2].clone()));
+            grid.attach(&elements[i-skipped_elements].but,
+                periodic_table[i][8].parse().unwrap(),periodic_table[i][7].parse().unwrap(),
+                1,1);
+        } else{
+            skipped_elements+=1;
+        }
     }
-
-    let mut group_2 = gtk::Box::new(Orientation::Vertical,5);
-    horizontal_box.append(&group_2);
-
-    let mut group_3 = gtk::Box::new(Orientation::Vertical,5);
-    horizontal_box.append(&group_3);
-
-    let mut group_4 = gtk::Box::new(Orientation::Vertical,5);
-    horizontal_box.append(&group_4);
-
-    let button = Button::builder()
-        .label("Does this show up?")
-        .build();
 
     let window = ApplicationWindow::builder()
         .application(app)
-        .title("Can you resize this?")
-        .child(&horizontal_box)
+        .title("Periodic table")
+        .child(&grid)
         .build();
 
     window.present();
 }
 
-fn create_element(symbol:&str,atomic_number:i32) -> Button{
-    let mut but = Button::builder()
-        .label(&symbol)
-        .build();
-    but.connect_clicked(|_|{
-                            println!("Element:, with atomic number:")
-});
-    return but;
+fn get_elements() -> Vec<Vec<String>>{
+    let mut output_record:Vec<csv::StringRecord> =vec![];
+    // get list of StringRecord types
+    // eg [StringRecord(["1", "Hydrogen", "H", "1.007", "0", . . . ]),]
+    let file = File::open("PeriodicTable.csv").expect("Couldn't open file");
+    let mut rdr = csv::Reader::from_reader(file);
+    for result in rdr.records() {
+        match result {
+            Ok(record) => output_record.push(record),
+            Err(err) => {
+                println!("error reading CSV from <stdin>: {}", err);
+                process::exit(1);
+            }
+        }
+    }
+
+    // convert list of StringRecords to list of list of strings
+    let mut output: Vec<Vec<String>> = vec![];
+    for i in 0..(output_record.len()){ // every row
+        output.push(vec![]);
+        for j in 0..(output_record[i].len()){ // every field
+            output[i].push(output_record[i].get(j).expect("error").to_string())
+        }
+    }
+
+    return output;
+}
+
+
+// makes variable properties of Element object
+struct Element{
+    atomic_number:i32,
+    symbol:String,
+    but:Button,
+}
+
+// makes object type "MakeButton" with 2 functions that must be defined per-object
+trait MakeButton{
+    fn make_button(&mut self);
+    fn new(atomic_number:i32,symbol:String) -> Element;
+}
+
+// makes Element object "Element" a "MakeButton" type
+impl MakeButton for Element{
+    fn make_button(&mut self){
+        let label = self.symbol.clone();
+        let number = self.atomic_number.clone();
+        let but = Button::builder()
+            .label(&self.symbol)
+            .hexpand(true)
+            .vexpand(true)
+            .build();
+        but.connect_clicked(move |_|{
+            println!("The atomic number of {} is {}",label,number);
+        });
+        self.but = but;
+    }
+    fn new(atomic_number:i32,symbol:String) -> Element{
+        let mut output:Element = Element{
+            atomic_number:atomic_number,
+            symbol:symbol,
+            but:Button::new(),
+        };
+        output.make_button();
+        return output;
+    }
 }
