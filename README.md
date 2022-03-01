@@ -15,7 +15,6 @@
   <li>Install rust with <samp>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh</samp> or use your distro's package manager</li>
   <li>Clone this repository with <samp>git clone https://github.com/SirAlienTheGreat/gtk-periodic-table</samp>, then <samp>cd</samp> into this directory</li>
   <li>Build with <samp>cargo build --release</samp></li>
-  <li>Copy the image files into <samp>target/release</samp></li>
   <li>You may need to <samp>chmod +x gtk-periodic-table</samp>, or it may have permission to run with <samp>./gtk-periodic-table</samp> by default</li>
 </ol>
 
@@ -30,7 +29,6 @@
   <li>Clone this repository with <samp>git clone https://github.com/SirAlienTheGreat/gtk-periodic-table</samp>, then <samp>cd</samp> into this directory</li>
   <li>Build with <samp>cargo build --release</samp></li>
   <li>Pray to your favorite god, because this never works for me, and this sometimes seems to fix itself randomly</li>
-  <li>Copy the image files into <samp>target/release</samp></li>
   <li><samp>cd</samp> into <samp>target/release</samp> and add the .dlls with <samp>ldd gtk-periodic-table.exe | grep '\/mingw64\/bin\/.*dll' -o | xargs -I{} cp "{}" .</samp> (the period is part of the command)</li>
   <li>You can open file explorer and go to your MSYS2 installation folder (By default, C:msys2)<samp>/home/[USERNAME]/gtk-periodic-table-main/target/release</samp> and run gtk-periodic-table.exe</li>
 </ol>
